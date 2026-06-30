@@ -1,0 +1,21 @@
+# Build output
+bin/
+*.prg
+*.iq
+*.debug.iq
+
+# Developer signing key — NEVER commit
+keys/
+
+# Garmin credentials — NEVER commit (contains password in plaintext)
+.devcontainer/devcontainer.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor swap files
+*.swp
+*.swo
+
+.claude

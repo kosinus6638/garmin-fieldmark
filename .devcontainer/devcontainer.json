@@ -1,0 +1,35 @@
+{
+    "name": "garmin-fieldmark",
+    "build": {
+        "dockerfile": "Dockerfile",
+        "context": ".."
+    },
+    "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
+    "workspaceFolder": "/workspace",
+    // Garmin credentials are read from the gitignored devcontainer.env file.
+    // Copy devcontainer.env.example to devcontainer.env and fill it in first.
+    "runArgs": [
+        "--env-file",
+        "${localWorkspaceFolder}/.devcontainer/devcontainer.env"
+    ],
+    "mounts": [
+        // SDK is persisted in a named volume — survives container rebuilds.
+        // Garmin login is only required once (or when the SDK volume is deleted).
+        "source=garmin-ciq-sdk,target=/root/.Garmin,type=volume"
+    ],
+    "postCreateCommand": "bash .devcontainer/setup-sdk.sh",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "garmin.monkey-c"
+            ],
+            "settings": {
+                // Stable symlink created by setup-sdk.sh; survives SDK version changes.
+                "monkeyC.sdkPath": "/opt/connectiq-current"
+            }
+        }
+    },
+    "remoteEnv": {
+        "PATH": "${containerEnv:PATH}:/opt/connectiq-current/bin"
+    }
+}

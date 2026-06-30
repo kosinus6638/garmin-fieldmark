@@ -1,0 +1,20 @@
+<iq:manifest xmlns:iq="http://www.garmin.com/xml/connectiq" version="3">
+    <iq:application
+        entry="FieldMarkApp"
+        id="4acd4f449ddb45d29b55939ba3515ebc"
+        launcherIcon="@Drawables.LauncherIcon"
+        minApiLevel="3.4.0"
+        name="@Strings.AppName"
+        type="watch-app">
+        <iq:products>
+            <iq:product id="fr255m"/>
+        </iq:products>
+        <iq:permissions>
+            <iq:uses-permission id="Positioning"/>
+        </iq:permissions>
+        <iq:languages>
+            <iq:language>deu</iq:language>
+            <iq:language>eng</iq:language>
+        </iq:languages>
+    </iq:application>
+</iq:manifest>
