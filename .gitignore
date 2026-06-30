@@ -19,3 +19,13 @@ Thumbs.db
 *.swo
 
 .claude
+
+# Python venv for the fit2csv tool
+.venv/
+__pycache__/
+
+# Recorded activity test data (don't commit personal GPS tracks)
+*.fit
+
+export/*.fit
+export/*.csv
