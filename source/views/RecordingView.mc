@@ -7,44 +7,34 @@ import Toybox.WatchUi;
 
 class RecordingView extends WatchUi.View {
 
-    private var _lastInfo as Position.Info?;
+    private var _controller as MappingController;
     private var _timer as Timer.Timer?;
 
-    function initialize() {
+    function initialize(controller as MappingController) {
         View.initialize();
-        _lastInfo = null;
+        _controller = controller;
     }
 
     function onLayout(dc as Graphics.Dc) as Void {
     }
 
     function onShow() as Void {
-        // Start continuous GPS; callback fires on each position update.
-        Position.enableLocationEvents(Position.LOCATION_CONTINUOUS, method(:onPosition));
-
-        // Tick once per second so clock / battery stay current even without a fix.
+        // Tick once per second so clock / battery stay current.
         _timer = new Timer.Timer();
         _timer.start(method(:onTick), 1000, true);
     }
 
     function onHide() as Void {
-        Position.enableLocationEvents(Position.LOCATION_DISABLE, method(:onPosition));
         if (_timer != null) {
             _timer.stop();
             _timer = null;
         }
     }
 
-    function onPosition(info as Position.Info) as Void {
-        _lastInfo = info;
-        WatchUi.requestUpdate();
-    }
-
     function onTick() as Void {
         WatchUi.requestUpdate();
     }
 
-    // Map the Position quality enum to a short German label.
     private function qualityLabel(info as Position.Info?) as String {
         if (info == null || info.accuracy == null) {
             return "Kein GPS";
@@ -75,28 +65,36 @@ class RecordingView extends WatchUi.View {
                     Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
 
         // --- GPS quality ---
-        var hasFix = _lastInfo != null
-                     && _lastInfo.accuracy != null
-                     && _lastInfo.accuracy >= Position.QUALITY_USABLE;
-
+        var info = _controller.getInfo();
+        var hasFix = _controller.hasFix();
         dc.setColor(hasFix ? Graphics.COLOR_GREEN : Graphics.COLOR_RED, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(w / 2, h / 2 - 30, Graphics.FONT_SMALL, "GPS: " + qualityLabel(_lastInfo),
+        dc.drawText(w / 2, 48, Graphics.FONT_SMALL, "GPS: " + qualityLabel(info),
                     Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
 
-        // --- Coordinates (only once we have a usable fix) ---
+        // --- Point counter ---
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-        if (hasFix) {
-            var deg = _lastInfo.position.toDegrees();
-            var latStr = (deg[0] as Double).format("%.5f");
-            var lonStr = (deg[1] as Double).format("%.5f");
-            dc.drawText(w / 2, h / 2 + 5, Graphics.FONT_TINY, latStr,
-                        Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
-            dc.drawText(w / 2, h / 2 + 30, Graphics.FONT_TINY, lonStr,
-                        Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        dc.drawText(w / 2, h / 2, Graphics.FONT_NUMBER_MEDIUM, _controller.getCount().format("%d"),
+                    Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(w / 2, h / 2 + 32, Graphics.FONT_TINY, "Punkte",
+                    Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+
+        // --- Feedback / hint line ---
+        var ok = _controller.getLastMarkOk();
+        var msg;
+        var col;
+        if (ok == null) {
+            msg = "START = Punkt";
+            col = Graphics.COLOR_DK_GRAY;
+        } else if (ok) {
+            msg = "Gespeichert";
+            col = Graphics.COLOR_GREEN;
         } else {
-            dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
-            dc.drawText(w / 2, h / 2 + 15, Graphics.FONT_TINY, "Warte auf Fix...",
-                        Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+            msg = "Kein GPS-Fix!";
+            col = Graphics.COLOR_RED;
         }
+        dc.setColor(col, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(w / 2, h - 28, Graphics.FONT_TINY, msg,
+                    Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 }
